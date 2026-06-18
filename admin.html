@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LootSphere | Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        stake: { bg: '#0f212e', nav: '#1a2c38', card: '#213743', cardHover: '#2f4553', green: '#00e701', blue: '#1475e1', blueHover: '#1b80f4', text: '#b1bad3', white: '#ffffff', red: '#ef4444' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-user-select: none; user-select: none; background-color: #0f212e; color: #ffffff; }
+        img { -webkit-user-drag: none; pointer-events: none; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f212e; }
+        ::-webkit-scrollbar-thumb { background: #213743; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen font-sans">
+
+    <div id="login-screen" class="fixed inset-0 bg-stake-bg flex items-center justify-center z-[100] transition-opacity duration-500 p-4">
+        <div class="bg-stake-nav p-8 rounded-lg shadow-2xl w-full max-w-md border border-stake-card">
+            <div class="text-center mb-8 flex flex-col items-center">
+                <svg class="w-10 h-10 text-stake-blue mb-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <div class="text-3xl font-black tracking-tighter text-white mb-1">LootSphere</div>
+                <h2 class="text-sm font-bold text-stake-text uppercase tracking-widest">Admin Authorization</h2>
+            </div>
+            
+            <div id="login-error" class="hidden mb-4 p-3 bg-red-900/50 border border-red-500 text-stake-red rounded-md text-sm font-bold text-center transition-all">Incorrect ID or Password.</div>
+            
+            <form id="login-form" class="space-y-5">
+                <div>
+                    <input type="text" id="admin-id" value="shubham82997798" placeholder="Admin ID" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none" required>
+                </div>
+                <div>
+                    <input type="password" id="admin-pass" value="shubh77989424" placeholder="Password" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none" required>
+                </div>
+                <button type="submit" class="w-full py-3 mt-4 bg-stake-blue text-white rounded-md font-bold hover:bg-stake-blueHover transition shadow-lg shadow-stake-blue/20">Secure Login</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="admin-dashboard" class="hidden opacity-0 transition-opacity duration-500">
+        
+        <header class="flex justify-between items-center p-4 bg-stake-nav border-b border-stake-card shadow-md">
+            <div class="text-xl font-black text-white flex items-center gap-2">
+                <svg class="w-5 h-5 text-stake-blue" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                LootSphere <span class="text-stake-text text-xs uppercase tracking-widest ml-2 bg-stake-bg px-2 py-1 rounded">Admin Console</span>
+            </div>
+            <button onclick="location.reload()" class="text-stake-text text-sm font-bold hover:text-stake-red transition">Logout</button>
+        </header>
+
+        <main class="max-w-6xl mx-auto p-4 mt-6">
+            
+            <div class="flex gap-3 mb-6 border-b border-stake-card pb-4 overflow-x-auto">
+                <button id="tab-create" onclick="switchTab('create')" class="px-6 py-2 bg-stake-card text-white rounded-md font-bold transition border border-stake-blue shadow-lg whitespace-nowrap">
+                    Create / Edit Pack
+                </button>
+                <button id="tab-manage" onclick="switchTab('manage')" class="px-6 py-2 bg-stake-nav text-stake-text hover:text-white rounded-md font-bold transition border border-transparent hover:border-stake-card whitespace-nowrap">
+                    Manage Packs
+                </button>
+                <button id="tab-users" onclick="switchTab('users')" class="px-6 py-2 bg-stake-nav text-stake-text hover:text-white rounded-md font-bold transition border border-transparent hover:border-stake-card whitespace-nowrap">
+                    Manage Users
+                </button>
+            </div>
+
+            <div id="success-toast" class="hidden mb-6 p-4 bg-stake-card border-l-4 border-stake-green text-white rounded-r-md font-bold shadow-lg">
+                ✅ Database updated successfully!
+            </div>
+
+            <div id="view-manage" class="hidden">
+                <div class="mb-6 flex items-center gap-3">
+                    <div class="w-2 h-6 bg-stake-blue rounded-full"></div>
+                    <h1 class="text-2xl font-bold text-white">Active Packs Directory</h1>
+                </div>
+                
+                <div id="manage-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+            </div>
+
+            <div id="view-create" class="block">
+                <div class="mb-6 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-6 bg-stake-blue rounded-full"></div>
+                        <h1 id="form-title" class="text-2xl font-bold text-white">Build New Pack</h1>
+                    </div>
+                    <button id="cancel-edit-btn" onclick="resetForm()" class="hidden text-sm font-bold text-stake-red hover:text-red-300">Cancel Edit</button>
+                </div>
+
+                <div class="bg-stake-nav rounded-lg p-6 shadow-xl flex flex-col lg:flex-row gap-8 border border-stake-card">
+                    <div class="w-full lg:w-1/3 space-y-5">
+                        <h2 class="text-lg font-bold border-b border-stake-card pb-2 text-white">1. Core Settings</h2>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-stake-text mb-2 uppercase">Pack Main Image</label>
+                            <div id="image-upload-area" class="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-stake-card rounded-md bg-stake-bg cursor-pointer overflow-hidden hover:border-stake-blue transition">
+                                <span id="upload-placeholder" class="text-stake-text text-sm font-bold">Click to upload</span>
+                                <img id="image-preview" class="hidden absolute inset-0 w-full h-full object-contain p-2" />
+                                <input id="file-input" type="file" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-stake-text mb-2 uppercase">Pack Name</label>
+                            <input type="text" id="pack-name" placeholder="e.g. Money Crunch" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white outline-none" required>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-stake-text mb-2 uppercase">Price ($)</label>
+                                <input type="number" id="pack-price" placeholder="0.11" step="0.01" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white outline-none" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-stake-text mb-2 uppercase">Status</label>
+                                <select id="pack-risk" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white outline-none">
+                                    <option value="active">Active</option>
+                                    <option value="hidden">Hidden</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full lg:w-2/3 space-y-5 border-t lg:border-t-0 lg:border-l border-stake-card lg:pl-8 pt-6 lg:pt-0">
+                        <h2 class="text-lg font-bold border-b border-stake-card pb-2 text-white">2. Item Drop Pool</h2>
+                        
+                        <div class="bg-stake-nav p-4 rounded-md border border-stake-blue border-dashed grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 shadow-inner">
+                            <div class="col-span-1 md:col-span-3">
+                                <h3 class="text-white text-sm font-bold flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-stake-blue" fill="currentColor" viewBox="0 0 24 24"><path d="M21 5H3a1 1 0 00-1 1v4a1 1 0 001 1h18a1 1 0 001-1V6a1 1 0 00-1-1zM21 13H3a1 1 0 00-1 1v4a1 1 0 001 1h18a1 1 0 001-1v-4a1 1 0 00-1-1z"/></svg>
+                                    Auto-Generate LootSphere Voucher
+                                </h3>
+                                <p class="text-xs text-stake-text mt-1">Generates a branded voucher graphic instantly. No upload needed.</p>
+                            </div>
+                            <input type="number" id="voucher-value" placeholder="Voucher Value ($)" step="0.01" class="px-3 py-2 rounded bg-stake-bg border border-stake-card text-white text-sm outline-none">
+                            <input type="number" id="voucher-chance" placeholder="Chance (%)" step="0.0001" class="px-3 py-2 rounded bg-stake-bg border border-stake-card text-white text-sm outline-none">
+                            <button type="button" onclick="addVoucher()" class="bg-stake-blue hover:bg-stake-blueHover text-white font-bold rounded text-sm transition py-2 md:py-0 shadow-md">Add Voucher</button>
+                        </div>
+
+                        <div class="bg-stake-bg p-4 rounded-md border border-stake-card grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div class="col-span-1 md:col-span-3">
+                                <h3 class="text-white text-sm font-bold">Or Add Custom Item</h3>
+                            </div>
+                            <input type="text" id="item-name" placeholder="Item Name" class="px-3 py-2 rounded bg-stake-nav border border-stake-card text-white text-sm outline-none">
+                            <input type="number" id="item-value" placeholder="Value ($)" step="0.01" class="px-3 py-2 rounded bg-stake-nav border border-stake-card text-white text-sm outline-none">
+                            <input type="number" id="item-chance" placeholder="Chance (%)" step="0.0001" class="px-3 py-2 rounded bg-stake-nav border border-stake-card text-white text-sm outline-none">
+                            
+                            <div class="relative md:col-span-2 flex items-center justify-between bg-stake-nav border border-stake-card rounded px-3 py-2 text-xs text-stake-text cursor-pointer hover:border-stake-blue transition">
+                                <span id="item-file-label">📂 Select Item Image File</span>
+                                <input type="file" id="item-file-input" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
+                            </div>
+                            
+                            <button type="button" onclick="addItem()" class="bg-stake-card hover:bg-stake-blueHover text-white font-bold rounded text-sm transition py-2 md:py-0 border border-stake-blue">Add Item</button>
+                        </div>
+
+                        <div class="bg-stake-bg rounded-md border border-stake-card min-h-[200px] max-h-[300px] overflow-y-auto p-2 space-y-2" id="items-list">
+                            <p class="text-stake-text text-sm text-center py-10" id="empty-items-msg">No items added yet. Build your drop list above.</p>
+                        </div>
+
+                        <button type="button" onclick="submitPack()" id="submit-btn" class="w-full py-4 bg-stake-green text-stake-bg rounded-md font-black text-lg hover:bg-[#00c701] transition mt-4 shadow-lg shadow-stake-green/20">
+                            Save & Sync Pack to Website
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-users" class="hidden">
+                <div class="mb-6 flex items-center gap-3">
+                    <div class="w-2 h-6 bg-stake-blue rounded-full"></div>
+                    <h1 class="text-2xl font-bold text-white">Registered Users</h1>
+                </div>
+                
+                <div class="bg-stake-nav rounded-lg shadow-xl border border-stake-card overflow-x-auto">
+                    <table class="w-full text-left text-sm text-stake-text">
+                        <thead class="bg-stake-card text-white uppercase font-bold text-xs tracking-wider border-b border-stake-card">
+                            <tr>
+                                <th class="px-6 py-4">Username</th>
+                                <th class="px-6 py-4">Email</th>
+                                <th class="px-6 py-4">Balance</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body" class="divide-y divide-stake-bg"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="user-manage-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-stake-nav rounded-lg w-full max-w-md shadow-2xl border border-stake-card overflow-hidden">
+            
+            <div class="flex justify-between items-center p-5 border-b border-stake-bg">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-stake-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                    Manage User
+                </h3>
+                <button onclick="closeUserModal()" class="text-stake-text hover:text-white font-bold text-2xl leading-none">&times;</button>
+            </div>
+            
+            <div class="p-6 space-y-6" id="modal-manage-controls">
+                
+                <div class="bg-stake-bg p-4 rounded-md border border-stake-card text-center">
+                    <h4 id="modal-u-name" class="text-2xl font-black text-white">Username</h4>
+                    <p id="modal-u-email" class="text-sm text-stake-text mb-2">email@example.com</p>
+                    <div class="inline-block bg-stake-card px-4 py-1 rounded-full border border-stake-nav mb-2">
+                        <span class="text-xs uppercase tracking-widest text-stake-text">Wallet:</span>
+                        <span id="modal-u-balance" class="text-stake-green font-bold ml-1">$0.00</span>
+                    </div>
+                    <div>
+                        <button onclick="viewUserTransactions()" class="text-stake-blue hover:text-white text-xs font-bold underline transition">View Transaction History</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stake-text mb-2 uppercase">User Credentials</label>
+                    <div class="flex items-center justify-between bg-stake-bg p-3 rounded-md border border-stake-card">
+                        <span class="text-sm text-white font-mono truncate mr-2" id="modal-u-email-cred">email</span>
+                        <div class="flex items-center gap-2">
+                            <input type="password" id="modal-u-password-cred" class="bg-transparent text-white font-mono text-sm outline-none text-right w-24 sm:w-32" readonly>
+                            <button onclick="togglePasswordVisibility()" class="text-stake-text hover:text-white transition">
+                                <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-stake-text mb-2 uppercase">Modify Balance</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="modify-amount" placeholder="Amount ($)" class="w-full px-4 py-2 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none">
+                        <button onclick="modifyUserFunds('add')" class="px-4 py-2 bg-stake-green hover:bg-[#00c701] text-stake-bg font-bold rounded shadow-md transition">+</button>
+                        <button onclick="modifyUserFunds('deduct')" class="px-4 py-2 bg-stake-red hover:bg-red-600 text-white font-bold rounded shadow-md transition" title="Apply Penalty">−</button>
+                    </div>
+                </div>
+
+                <div class="border-t border-stake-card pt-4 space-y-3">
+                    <button id="modal-btn-ban" onclick="toggleUserBan()" class="w-full py-3 bg-stake-card border border-stake-bg text-white rounded-md font-bold hover:bg-stake-cardHover transition">
+                        Ban User
+                    </button>
+                    <button onclick="deleteUser()" class="w-full py-3 bg-red-900/30 border border-red-900/50 text-stake-red rounded-md font-bold hover:bg-stake-red hover:text-white transition">
+                        Delete Account Permanently
+                    </button>
+                </div>
+            </div>
+
+            <div class="hidden p-6" id="modal-tx-history">
+                <button onclick="document.getElementById('modal-tx-history').classList.add('hidden'); document.getElementById('modal-manage-controls').classList.remove('hidden');" class="text-stake-text hover:text-white text-xs font-bold mb-4 flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Back to Controls</button>
+                <div class="overflow-y-auto max-h-[300px] border border-stake-card rounded bg-stake-bg">
+                    <table class="w-full text-left text-xs text-stake-text">
+                        <tbody id="admin-tx-list" class="divide-y divide-stake-nav"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Global State ---
+        let currentItems = [];
+        let tempItemImageBase64 = "";
+        let editingPackIndex = null; 
+        let activeEditUserIndex = null; 
+
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const adminId = document.getElementById('admin-id').value.trim();
+            const adminPass = document.getElementById('admin-pass').value.trim();
+            const errorMsg = document.getElementById('login-error');
+
+            if(adminId === "shubham82997798" && adminPass === "shubh77989424") {
+                if(errorMsg) errorMsg.classList.add('hidden');
+                document.getElementById('login-screen').classList.add('opacity-0');
+                
+                setTimeout(() => {
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('admin-dashboard').classList.remove('hidden');
+                    setTimeout(() => document.getElementById('admin-dashboard').classList.remove('opacity-0'), 50);
+                    renderManageGrid(); renderUsersTable(); 
+                }, 300);
+            } else {
+                if(errorMsg) errorMsg.classList.remove('hidden');
+            }
+        });
+
+        function switchTab(tab) {
+            const views = { 'create': document.getElementById('view-create'), 'manage': document.getElementById('view-manage'), 'users': document.getElementById('view-users') };
+            const tabs = { 'create': document.getElementById('tab-create'), 'manage': document.getElementById('tab-manage'), 'users': document.getElementById('tab-users') };
+
+            Object.keys(views).forEach(key => {
+                views[key].classList.replace('block', 'hidden');
+                tabs[key].classList.remove('bg-stake-card', 'text-white', 'border-stake-blue');
+                tabs[key].classList.add('bg-stake-nav', 'text-stake-text', 'border-transparent');
+            });
+
+            views[tab].classList.replace('hidden', 'block');
+            tabs[tab].classList.remove('bg-stake-nav', 'text-stake-text', 'border-transparent');
+            tabs[tab].classList.add('bg-stake-card', 'text-white', 'border-stake-blue');
+
+            if(tab === 'manage') renderManageGrid();
+            if(tab === 'users') renderUsersTable();
+        }
+
+        // ==========================================
+        //         PACK MANAGEMENT SYSTEM
+        // ==========================================
+        
+        function renderManageGrid() {
+            let packs = JSON.parse(localStorage.getItem('lootSpherePacks')) || [];
+            const grid = document.getElementById('manage-grid'); grid.innerHTML = '';
+            if(packs.length === 0) return grid.innerHTML = `<p class="text-stake-text col-span-full py-10 text-center font-bold">No packs available. Go to Create Tab to build one.</p>`;
+            
+            packs.forEach((pack, index) => {
+                grid.innerHTML += `
+                    <div class="bg-stake-nav p-4 rounded-md border border-stake-card flex flex-col items-center relative shadow-md">
+                        <img src="${pack.image}" class="h-24 w-24 object-contain mb-3 bg-stake-bg p-2 rounded">
+                        <h3 class="text-white font-bold text-lg text-center w-full truncate">${pack.name}</h3>
+                        <p class="text-stake-green font-bold text-sm mb-1">$${parseFloat(pack.price).toFixed(2)}</p>
+                        <p class="text-stake-text text-xs mb-4">${pack.contents ? pack.contents.length : 0} Drop Items</p>
+                        <div class="flex gap-2 w-full mt-auto">
+                            <button onclick="editPack(${index})" class="flex-1 py-2 bg-stake-card border border-stake-card text-white hover:bg-stake-blue hover:border-stake-blue rounded transition font-bold text-sm">Edit</button>
+                            <button onclick="deletePack(${index})" class="flex-1 py-2 bg-red-900/30 border border-red-900/50 text-stake-red hover:bg-stake-red hover:text-white rounded transition font-bold text-sm">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function deletePack(index) {
+            if(confirm("Are you sure you want to permanently delete this pack?")) {
+                let packs = JSON.parse(localStorage.getItem('lootSpherePacks')) || [];
+                packs.splice(index, 1); localStorage.setItem('lootSpherePacks', JSON.stringify(packs)); renderManageGrid();
+            }
+        }
+
+        function editPack(index) {
+            let packs = JSON.parse(localStorage.getItem('lootSpherePacks')) || [];
+            const pack = packs[index]; editingPackIndex = index;
+            document.getElementById('pack-name').value = pack.name; document.getElementById('pack-price').value = pack.price; document.getElementById('pack-risk').value = pack.risk || 'active';
+            const imgPreview = document.getElementById('image-preview'); imgPreview.src = pack.image; imgPreview.classList.remove('hidden'); document.getElementById('upload-placeholder').classList.add('hidden');
+            currentItems = [...pack.contents]; renderItems();
+            document.getElementById('form-title').innerHTML = `Editing Pack: <span class="text-stake-blue">${pack.name}</span>`; document.getElementById('submit-btn').innerText = "Update & Sync Changes"; document.getElementById('cancel-edit-btn').classList.remove('hidden');
+            switchTab('create'); window.scrollTo(0,0);
+        }
+
+        // --- Image Readers ---
+        const fileInput = document.getElementById('file-input'); const imagePreview = document.getElementById('image-preview');
+        fileInput.addEventListener('change', (e) => { const reader = new FileReader(); reader.onload = (e) => { imagePreview.src = e.target.result; imagePreview.classList.remove('hidden'); document.getElementById('upload-placeholder').classList.add('hidden'); }; reader.readAsDataURL(e.target.files[0]); });
+
+        const itemFileInput = document.getElementById('item-file-input'); const itemFileLabel = document.getElementById('item-file-label');
+        itemFileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (event) => { tempItemImageBase64 = event.target.result; itemFileLabel.innerText = `✅ Loaded: ${file.name.substring(0, 15)}...`; itemFileLabel.classList.replace('text-stake-text', 'text-stake-green'); }; reader.readAsDataURL(file); } });
+        
+        // --- ADD CUSTOM ITEM ---
+        function addItem() {
+            const name = document.getElementById('item-name').value;
+            const value = parseFloat(document.getElementById('item-value').value);
+            const chance = parseFloat(document.getElementById('item-chance').value);
+
+            if(!name || isNaN(value) || isNaN(chance) || !tempItemImageBase64) return alert("Please fill all item fields and upload an image.");
+
+            currentItems.push({ name, value, chance, image: tempItemImageBase64 }); renderItems();
+
+            document.getElementById('item-name').value = ''; document.getElementById('item-value').value = ''; document.getElementById('item-chance').value = ''; itemFileInput.value = ''; tempItemImageBase64 = ''; itemFileLabel.innerText = '📂 Select Item Image File'; itemFileLabel.classList.replace('text-stake-green', 'text-stake-text');
+        }
+
+        // --- NEW: ADD DYNAMIC VOUCHER ---
+        function addVoucher() {
+            const value = parseFloat(document.getElementById('voucher-value').value);
+            const chance = parseFloat(document.getElementById('voucher-chance').value);
+
+            if(isNaN(value) || isNaN(chance) || value <= 0) {
+                return alert("Please enter a valid voucher value and chance.");
+            }
+
+            const name = `$${value.toFixed(2)} Voucher`;
+            
+            // Draw a dynamic SVG Ticket graphic containing the exact dollar amount
+            const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="200" height="120" viewBox="0 0 200 120">
+                <rect x="10" y="10" width="180" height="100" rx="10" fill="#1a2c38" stroke="#1475e1" stroke-width="2"/>
+                <circle cx="10" cy="60" r="10" fill="#0f212e"/>
+                <circle cx="190" cy="60" r="10" fill="#0f212e"/>
+                <text x="100" y="45" font-family="sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle">LootSphere</text>
+                <text x="100" y="65" font-family="sans-serif" font-weight="bold" font-size="12" fill="#b1bad3" text-anchor="middle">VOUCHER</text>
+                <text x="100" y="90" font-family="sans-serif" font-weight="900" font-size="22" fill="#00e701" text-anchor="middle">$${value.toFixed(2)}</text>
+            </svg>`;
+            
+            const base64Image = 'data:image/svg+xml;base64,' + btoa(svg);
+
+            currentItems.push({ name, value, chance, image: base64Image });
+            renderItems();
+
+            document.getElementById('voucher-value').value = '';
+            document.getElementById('voucher-chance').value = '';
+        }
+
+        function removeItem(index) { currentItems.splice(index, 1); renderItems(); }
+
+        function renderItems() {
+            const list = document.getElementById('items-list');
+            if(currentItems.length === 0) return list.innerHTML = '<p class="text-stake-text text-sm text-center py-10">No items added yet. Build your drop list above.</p>';
+            list.innerHTML = '';
+            currentItems.forEach((item, idx) => {
+                list.innerHTML += `
+                    <div class="flex items-center justify-between bg-stake-nav p-2 rounded border border-stake-card shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <img src="${item.image}" class="w-10 h-10 object-contain bg-stake-bg rounded p-1">
+                            <div>
+                                <p class="text-white text-sm font-bold">${item.name}</p>
+                                <p class="text-stake-text text-xs">$${item.value.toFixed(2)} | ${item.chance.toFixed(4)}% Drop</p>
+                            </div>
+                        </div>
+                        <button onclick="removeItem(${idx})" class="text-stake-red hover:text-red-300 px-2 font-bold text-xl">&times;</button>
+                    </div>
+                `;
+            });
+        }
+
+        function resetForm() {
+            editingPackIndex = null; currentItems = []; document.getElementById('pack-name').value = ''; document.getElementById('pack-price').value = ''; fileInput.value = ''; imagePreview.src = ''; imagePreview.classList.add('hidden'); document.getElementById('upload-placeholder').classList.remove('hidden'); document.getElementById('form-title').innerText = "Build New Pack"; document.getElementById('submit-btn').innerText = "Save & Sync Pack to Website"; document.getElementById('cancel-edit-btn').classList.add('hidden'); renderItems();
+        }
+
+        function submitPack() {
+            const packName = document.getElementById('pack-name').value; const packPrice = parseFloat(document.getElementById('pack-price').value); const packRisk = document.getElementById('pack-risk').value; const packImgSrc = imagePreview.src;
+            if(!packName || isNaN(packPrice) || !packImgSrc || packImgSrc.includes('data:,')) return alert("Please configure the pack rules and select a main image.");
+            if(currentItems.length === 0) return alert("Add at least 1 item to the drop pool.");
+            const newPack = { name: packName, price: packPrice, risk: packRisk, image: packImgSrc, contents: currentItems };
+            let packs = JSON.parse(localStorage.getItem('lootSpherePacks')) || [];
+            if(editingPackIndex !== null) packs[editingPackIndex] = newPack; else packs.push(newPack);
+            localStorage.setItem('lootSpherePacks', JSON.stringify(packs)); showToast("Database updated successfully."); resetForm();
+        }
+
+        // ==========================================
+        //         USER MANAGEMENT SYSTEM
+        // ==========================================
+        
+        function getUsers() { return JSON.parse(localStorage.getItem('lootSphereUsers')) || []; }
+        function saveUsers(usersArr) { localStorage.setItem('lootSphereUsers', JSON.stringify(usersArr)); }
+
+        function renderUsersTable() {
+            let users = getUsers(); const tbody = document.getElementById('users-table-body'); tbody.innerHTML = '';
+            if (users.length === 0) return tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-10 text-center font-bold">No registered users found.</td></tr>`;
+            users.forEach((user, index) => {
+                let balance = user.balance !== undefined ? user.balance : 1250.00; let isBanned = user.banned || false;
+                let statusBadge = isBanned ? `<span class="px-2 py-1 bg-red-900/50 text-stake-red border border-stake-red rounded text-xs font-bold uppercase">Banned</span>` : `<span class="px-2 py-1 bg-green-900/50 text-stake-green border border-stake-green rounded text-xs font-bold uppercase">Active</span>`;
+                tbody.innerHTML += `<tr class="hover:bg-stake-bg transition"><td class="px-6 py-4 font-bold text-white">${user.username}</td><td class="px-6 py-4">${user.email}</td><td class="px-6 py-4 font-bold text-stake-green">$${parseFloat(balance).toFixed(2)}</td><td class="px-6 py-4">${statusBadge}</td><td class="px-6 py-4 text-right"><button onclick="openUserModal(${index})" class="px-4 py-2 bg-stake-card text-white hover:bg-stake-blueHover rounded shadow transition font-bold text-xs border border-stake-card hover:border-stake-blue">Manage</button></td></tr>`;
+            });
+        }
+
+        function openUserModal(index) {
+            activeEditUserIndex = index; let users = getUsers(); let user = users[index];
+            if(user.balance === undefined) user.balance = 1250.00; if(user.banned === undefined) user.banned = false;
+            document.getElementById('modal-u-name').innerText = user.username; document.getElementById('modal-u-email').innerText = user.email; document.getElementById('modal-u-balance').innerText = `$${parseFloat(user.balance).toFixed(2)}`; document.getElementById('modify-amount').value = '';
+            document.getElementById('modal-u-email-cred').innerText = user.email; const passInput = document.getElementById('modal-u-password-cred'); passInput.value = user.password; passInput.type = 'password'; document.getElementById('eye-icon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>';
+            const banBtn = document.getElementById('modal-btn-ban'); if (user.banned) { banBtn.innerText = "Unban User"; banBtn.classList.replace('bg-stake-card', 'bg-stake-green'); } else { banBtn.innerText = "Ban User"; banBtn.classList.replace('bg-stake-green', 'bg-stake-card'); }
+            document.getElementById('modal-manage-controls').classList.remove('hidden'); document.getElementById('modal-tx-history').classList.add('hidden'); document.getElementById('user-manage-modal').classList.remove('hidden');
+        }
+
+        function closeUserModal() { document.getElementById('user-manage-modal').classList.add('hidden'); activeEditUserIndex = null; }
+
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('modal-u-password-cred'); const eyeIcon = document.getElementById('eye-icon');
+            if (passInput.type === 'password') { passInput.type = 'text'; eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>'; } 
+            else { passInput.type = 'password'; eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>'; }
+        }
+
+        function modifyUserFunds(actionType) {
+            let amount = parseFloat(document.getElementById('modify-amount').value); if (isNaN(amount) || amount <= 0) return alert("Please enter a valid amount.");
+            let users = getUsers(); let user = users[activeEditUserIndex]; if(user.balance === undefined) user.balance = 1250.00;
+            if (actionType === 'add') { user.balance += amount; } else if (actionType === 'deduct') { user.balance -= amount; if (user.balance < 0) user.balance = 0; }
+            if(!user.transactions) user.transactions = [];
+            user.transactions.push({ id: Date.now(), date: new Date().toLocaleString(), amount: actionType === 'add' ? amount : -amount, type: actionType === 'add' ? 'promo' : 'penalty', details: actionType === 'add' ? 'Admin credited funds' : 'Admin applied penalty' });
+            const activeLocalUser = JSON.parse(localStorage.getItem('lootSphereActiveUser')); if(activeLocalUser && activeLocalUser.email === user.email) { localStorage.setItem('lootSphereActiveUser', JSON.stringify(user)); }
+            saveUsers(users); showToast("Balance updated successfully."); document.getElementById('modal-u-balance').innerText = `$${parseFloat(user.balance).toFixed(2)}`; document.getElementById('modify-amount').value = ''; renderUsersTable();
+        }
+
+        function viewUserTransactions() {
+            let user = getUsers()[activeEditUserIndex]; let txList = document.getElementById('admin-tx-list'); txList.innerHTML = ''; let txs = user.transactions || [];
+            if(txs.length === 0) { txList.innerHTML = '<tr><td colspan="4" class="p-4 text-center">No transactions on record.</td></tr>'; } 
+            else { txs.slice().reverse().forEach(tx => { let color = tx.amount >= 0 ? 'text-stake-green' : 'text-stake-red'; let sign = tx.amount >= 0 ? '+' : ''; txList.innerHTML += `<tr><td class="p-3">${tx.date}</td><td class="p-3 capitalize">${tx.type}</td><td class="p-3">${tx.details}</td><td class="p-3 font-bold ${color}">${sign}$${Math.abs(tx.amount).toFixed(2)}</td></tr>`; }); }
+            document.getElementById('modal-manage-controls').classList.add('hidden'); document.getElementById('modal-tx-history').classList.remove('hidden');
+        }
+
+        function toggleUserBan() {
+            let users = getUsers(); let user = users[activeEditUserIndex]; user.banned = !user.banned; saveUsers(users);
+            const activeLocalUser = JSON.parse(localStorage.getItem('lootSphereActiveUser')); if(activeLocalUser && activeLocalUser.email === user.email) { localStorage.setItem('lootSphereActiveUser', JSON.stringify(user)); }
+            showToast(user.banned ? "User has been Banned." : "User has been Unbanned."); closeUserModal(); renderUsersTable();
+        }
+
+        function deleteUser() {
+            if(confirm("Are you completely sure? This will permanently delete the user's account and all data.")) {
+                let users = getUsers(); let email = users[activeEditUserIndex].email; users.splice(activeEditUserIndex, 1); saveUsers(users);
+                const activeLocalUser = JSON.parse(localStorage.getItem('lootSphereActiveUser')); if(activeLocalUser && activeLocalUser.email === email) { localStorage.removeItem('lootSphereActiveUser'); }
+                showToast("Account deleted successfully."); closeUserModal(); renderUsersTable();
+            }
+        }
+
+        function showToast(msg) { const toast = document.getElementById('success-toast'); toast.innerHTML = `✅ ${msg}`; toast.classList.remove('hidden'); setTimeout(() => toast.classList.add('hidden'), 3000); }
+    </script>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Pack | LootSphere</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { stake: { bg: '#0f212e', nav: '#1a2c38', card: '#213743', cardHover: '#2f4553', green: '#00e701', blue: '#1475e1', blueHover: '#1b80f4', text: '#b1bad3', white: '#ffffff', purple: '#8b5cf6', purpleHover: '#7c3aed', red: '#ef4444' } } } } }
+    </script>
+    <style>
+        body { -webkit-user-select: none; user-select: none; background-color: #0f212e; color: #ffffff; overflow-x: hidden; }
+        img { -webkit-user-drag: none; pointer-events: none; } ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0f212e; } ::-webkit-scrollbar-thumb { background: #213743; border-radius: 10px; }
+        .item-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; background: radial-gradient(circle, rgba(255,215,0,0.12) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+        .roulette-container { mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent); -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent); }
+        .fast-spin-active { color: #ef4444 !important; filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8)); }
+    </style>
+</head>
+<body class="min-h-screen font-sans">
+    
+    <header class="bg-stake-nav sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div onclick="window.location.href='index.html'" class="text-2xl font-black text-white tracking-tighter cursor-pointer flex items-center gap-2">
+                <svg class="w-6 h-6 text-stake-blue" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg> LootSphere
+            </div>
+            <nav class="flex space-x-6 text-sm font-bold text-stake-text">
+                <button onclick="window.location.href='index.html'" class="text-white hover:text-white transition">Packs</button>
+            </nav>
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <button onclick="toggleMenu('balance-menu')" id="display-balance" class="bg-stake-bg px-4 py-2 rounded-md text-stake-green font-bold text-sm shadow-inner transition-colors border border-stake-card hover:border-stake-blue">$0.00</button>
+                    <div id="balance-menu" class="hidden absolute right-0 mt-2 w-40 bg-stake-card rounded shadow-xl border border-stake-nav z-50 p-1">
+                        <button onclick="handleBanking('deposit')" class="block w-full text-left px-4 py-2 hover:bg-stake-bg text-sm font-bold rounded">Deposit</button>
+                        <button onclick="handleBanking('withdraw')" class="block w-full text-left px-4 py-2 hover:bg-stake-bg text-sm font-bold rounded">Withdraw</button>
+                    </div>
+                </div>
+                <button onclick="toggleInventory()" class="px-4 py-2 bg-stake-card text-stake-text text-sm font-bold rounded-md hover:bg-stake-cardHover flex items-center transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg></button>
+                <div class="relative">
+                    <button onclick="toggleMenu('account-menu')" class="px-4 py-2 bg-stake-blue text-white text-sm font-bold rounded-md hover:bg-stake-blueHover flex items-center transition"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg></button>
+                    <div id="account-menu" class="hidden absolute right-0 mt-2 w-40 bg-stake-card rounded shadow-xl border border-stake-nav z-50 p-1"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto w-full">
+        <div id="view-pack-details" class="flex flex-col w-full pb-20 mt-4">
+            <div class="px-4 pb-2"><button onclick="window.location.href='index.html'" class="text-stake-text hover:text-white font-bold text-sm flex items-center gap-2 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Back to Lobby</button></div>
+            
+            <div class="w-full bg-stake-nav/50 relative overflow-hidden flex flex-col items-center justify-center roulette-container border-y border-stake-card py-6 min-h-[16rem]" id="spinners-wrapper">
+                </div>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between p-4 bg-stake-bg border-b border-stake-card gap-4">
+                <div class="flex items-center bg-stake-nav rounded-md p-1 border border-stake-card">
+                    <button onclick="changeMultiplier(-1)" class="px-4 py-2 text-stake-text hover:text-white font-black text-lg leading-none transition">−</button>
+                    <span id="multiplier-display" class="px-6 text-white font-bold text-sm">x1</span>
+                    <button onclick="changeMultiplier(1)" class="px-4 py-2 text-stake-text hover:text-white font-black text-lg leading-none transition">+</button>
+                </div>
+                <div class="flex gap-3">
+                    <button id="btn-open-pack" class="bg-stake-green text-white font-black px-12 py-3 rounded-md hover:bg-[#00c701] transition transform active:scale-95 shadow-lg">Open</button>
+                    <button onclick="executeUnbox(true)" class="bg-stake-card text-white font-bold px-6 py-3 rounded-md hover:bg-stake-cardHover transition">Demo</button>
+                </div>
+                <div class="flex items-center gap-4 text-stake-text">
+                    <svg id="fast-spin-btn" onclick="toggleFastSpin()" class="w-5 h-5 cursor-pointer transition-all duration-300 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+            </div>
+            
+            <div class="p-6 pb-2 max-w-7xl mx-auto w-full flex justify-between items-center mt-4">
+                <div class="flex items-center gap-4">
+                    <img id="detail-pack-img" src="" class="w-12 h-12 rounded bg-stake-card p-1 object-contain">
+                    <div><h2 id="detail-pack-title" class="text-xl font-bold text-white flex items-center gap-2">Pack</h2><p id="detail-pack-count" class="text-sm text-stake-text">0 Items</p></div>
+                </div>
+            </div>
+            <div id="detail-contents-grid" class="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-7xl mx-auto w-full"></div>
+        </div>
+    </main>
+
+    <div id="transactions-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+        <div class="bg-stake-nav rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl border border-stake-card">
+            <div class="flex justify-between items-center p-5 border-b border-stake-bg"><h3 class="text-xl font-bold text-white">Transaction History</h3><button onclick="document.getElementById('transactions-modal').classList.add('hidden')" class="text-stake-text hover:text-white font-bold text-2xl leading-none">&times;</button></div>
+            <div class="p-5 overflow-y-auto flex-grow bg-stake-bg"><table class="w-full text-left text-sm text-stake-text"><thead><tr><th class="p-2 border-b border-stake-card">Date</th><th class="p-2 border-b border-stake-card">Type</th><th class="p-2 border-b border-stake-card">Details</th><th class="p-2 border-b border-stake-card text-right">Amount</th></tr></thead><tbody id="tx-list-body" class="divide-y divide-stake-nav"></tbody></table></div>
+        </div>
+    </div>
+    
+    <div id="ban-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div class="bg-stake-nav border border-stake-red rounded-lg w-full max-w-md p-8 text-center shadow-2xl shadow-stake-red/20"><div class="w-16 h-16 bg-red-900/50 text-stake-red rounded-full flex items-center justify-center mx-auto mb-4 border border-stake-red"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg></div><h2 class="text-2xl font-black text-white mb-2">Account Banned</h2><p class="text-stake-text text-sm mb-6">Your account has been suspended by an administrator.</p><button onclick="document.getElementById('ban-modal').classList.add('hidden')" class="w-full py-3 bg-stake-card text-white font-bold rounded-md hover:bg-stake-cardHover transition border border-stake-card">Acknowledge</button></div>
+    </div>
+    
+    <div id="auth-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+        <div class="bg-stake-nav rounded-lg w-full max-w-md shadow-2xl border border-stake-card overflow-hidden">
+            <div class="flex justify-between items-center p-5 border-b border-stake-bg"><h3 id="auth-title" class="text-xl font-bold text-white">Login</h3><button onclick="closeAuthModal()" class="text-stake-text hover:text-white font-bold text-2xl leading-none">&times;</button></div>
+            <div class="flex border-b border-stake-bg"><button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-3 text-sm font-bold text-white border-b-2 border-stake-blue bg-stake-card transition">Login</button><button id="tab-register" onclick="switchAuthTab('register')" class="flex-1 py-3 text-sm font-bold text-stake-text border-b-2 border-transparent hover:bg-stake-bg transition">Register</button></div>
+            <form id="auth-form" onsubmit="handleAuth(event)"><div class="p-6 space-y-4"><div id="auth-error" class="hidden p-3 bg-red-900/50 border border-red-500 text-stake-red rounded-md text-sm font-bold text-center"></div><div id="register-fields" class="hidden space-y-4"><input type="text" id="auth-username" placeholder="Username" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none"></div><input type="email" id="auth-email" placeholder="Email Address" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none" required><input type="password" id="auth-password" placeholder="Password" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none" required><button type="submit" id="auth-submit-btn" class="w-full py-3 mt-2 bg-stake-green text-stake-bg rounded-md font-black text-lg hover:bg-[#00c701] transition shadow-lg">Login Now</button></div></form>
+        </div>
+    </div>
+
+    <div id="inventory-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-stake-nav rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl border border-stake-card">
+            <div class="flex justify-between items-center p-5 border-b border-stake-bg"><h3 class="text-xl font-bold text-white">Inventory</h3><button onclick="toggleInventory()" class="text-stake-text hover:text-white font-bold text-2xl leading-none">&times;</button></div>
+            <div id="inventory-list" class="p-5 overflow-y-auto flex-grow space-y-3"></div>
+            <div class="p-5 border-t border-stake-bg bg-stake-nav rounded-b-lg flex justify-between items-center">
+                <button onclick="sellAllInventory()" class="px-6 py-2 bg-stake-green hover:bg-[#00c701] text-stake-bg rounded-md font-bold transition shadow-md">Sell All</button>
+                <button onclick="toggleInventory()" class="px-6 py-2 bg-stake-card text-white hover:bg-stake-cardHover rounded-md font-bold transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userBalance = 0; let userInventory = []; let globalPacksData = [];
+        let activePackIndex = null; let currentMultiplier = 1; let isFastSpin = false; let currentUnboxedItems = []; let isSpinning = false; let currentAuthMode = 'login';
+
+        // --- ENHANCED AUDIO ENGINE ---
+        let audioCtx;
+        function initAudio() {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        
+        // Snappy roulette tick
+        function playTickSound() {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.03);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.03);
+        }
+
+        // Simulates the wheel slowing down organically
+        function simulateWheelTicks(durationSec) {
+            if(!audioCtx) return;
+            let timePassed = 0;
+            let delay = 30;
+            function tick() {
+                if(timePassed >= durationSec * 1000) return;
+                playTickSound();
+                let progress = timePassed / (durationSec * 1000);
+                delay = 30 + Math.pow(progress, 3) * 400; // Exponentially slow down
+                timePassed += delay;
+                setTimeout(tick, delay);
+            }
+            tick();
+        }
+        
+        // Cash Register / Jackpot Chime
+        function playCashSound() {
+            if(!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const freqs = [1200, 1600, 2000]; 
+            freqs.forEach((freq, i) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = freq + (Math.random()*100);
+                gain.gain.setValueAtTime(0, now + i * 0.05);
+                gain.gain.linearRampToValueAtTime(0.2, now + i * 0.05 + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.5);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + i * 0.05);
+                osc.stop(now + i * 0.05 + 0.6);
+            });
+        }
+
+        window.onload = function() {
+            checkAuth();
+            const stored = localStorage.getItem('lootSpherePacks'); globalPacksData = stored ? JSON.parse(stored) : []; globalPacksData.sort((a, b) => b.price - a.price);
+            const urlParams = new URLSearchParams(window.location.search); const packId = urlParams.get('id');
+            if (packId !== null && globalPacksData[packId]) { activePackIndex = parseInt(packId); loadPackDetails(); } 
+            else { window.location.href = 'index.html'; }
+        };
+
+        // --- AUTH & TRANSACTIONS ---
+        function checkAuth() {
+            let activeUser = JSON.parse(localStorage.getItem('lootSphereActiveUser'));
+            const accountMenu = document.getElementById('account-menu');
+            if(activeUser) {
+                const users = JSON.parse(localStorage.getItem('lootSphereUsers')) || [];
+                const latestUser = users.find(u => u.email === activeUser.email);
+                if (latestUser) { activeUser = latestUser; localStorage.setItem('lootSphereActiveUser', JSON.stringify(latestUser)); userBalance = latestUser.balance !== undefined ? latestUser.balance : 0; userInventory = latestUser.inventory || []; updateBalanceDisplay(); }
+                if(activeUser.banned) { accountMenu.innerHTML = `<div class="px-4 py-3 text-xs text-stake-red border-b border-stake-bg font-bold">⚠️ BANNED<br><span class="text-white text-sm mt-1 inline-block">${activeUser.username}</span></div><button onclick="logout()" class="block w-full text-left px-4 py-2 hover:bg-stake-bg text-sm font-bold text-stake-red rounded">Logout</button>`; } 
+                else { accountMenu.innerHTML = `<div class="px-4 py-3 text-xs text-stake-text border-b border-stake-bg font-bold truncate">Logged in as:<br><span class="text-white text-sm mt-1 inline-block">${activeUser.username}</span></div><button onclick="openUserTransactions()" class="block w-full text-left px-4 py-2 hover:bg-stake-bg text-sm font-bold text-stake-blue rounded">Transactions</button><button onclick="logout()" class="block w-full text-left px-4 py-2 hover:bg-stake-bg text-sm font-bold text-stake-red rounded border-t border-stake-bg mt-1">Logout</button>`; }
+            } else { userBalance = 0; userInventory = []; updateBalanceDisplay(); accountMenu.innerHTML = `<button onclick="openAuthModal('login')" class="block w-full text-left px-4 py-2 hover:bg-stake-bg text-sm font-bold rounded">Login</button><button onclick="openAuthModal('register')" class="block w-full text-left px-4 py-2 hover:bg-stake-bg text-sm font-bold rounded">Sign Up</button>`; }
+        }
+
+        function logTransaction(amount, type, details) {
+            let activeUser = JSON.parse(localStorage.getItem('lootSphereActiveUser'));
+            if(activeUser) {
+                if(!activeUser.transactions) activeUser.transactions = [];
+                activeUser.transactions.push({ id: Date.now(), date: new Date().toLocaleString(), amount: amount, type: type, details: details });
+                activeUser.balance = userBalance; activeUser.inventory = userInventory;
+                localStorage.setItem('lootSphereActiveUser', JSON.stringify(activeUser));
+                let users = JSON.parse(localStorage.getItem('lootSphereUsers')) || [];
+                let uIndex = users.findIndex(u => u.email === activeUser.email);
+                if(uIndex > -1) { users[uIndex] = activeUser; localStorage.setItem('lootSphereUsers', JSON.stringify(users)); }
+            }
+        }
+
+        function handleBanking(action) {
+            let activeUser = JSON.parse(localStorage.getItem('lootSphereActiveUser'));
+            if(!activeUser) return openAuthModal('login');
+            if(activeUser.banned) return document.getElementById('ban-modal').classList.remove('hidden');
+            document.getElementById('balance-menu').classList.add('hidden');
+            let amt = parseFloat(prompt(`Enter amount to ${action} ($):`));
+            if(amt && amt > 0) {
+                if(action === 'withdraw' && amt > userBalance) return alert("Insufficient funds!");
+                if(action === 'deposit') { userBalance += amt; logTransaction(amt, 'deposit', 'User wallet deposit'); }
+                if(action === 'withdraw') { userBalance -= amt; logTransaction(-amt, 'withdraw', 'User wallet withdrawal'); }
+                updateBalanceDisplay(); alert(`${action.charAt(0).toUpperCase() + action.slice(1)} successful!`); updatePackUI();
+            }
+        }
+
+        function openUserTransactions() {
+            let activeUser = JSON.parse(localStorage.getItem('lootSphereActiveUser'));
+            let tbody = document.getElementById('tx-list-body'); tbody.innerHTML = '';
+            let txs = activeUser.transactions || [];
+            if(txs.length === 0) tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center">No transactions yet.</td></tr>';
+            txs.slice().reverse().forEach(tx => {
+                let color = tx.amount >= 0 ? 'text-stake-green' : 'text-stake-red'; let sign = tx.amount >= 0 ? '+' : '';
+                tbody.innerHTML += `<tr><td class="p-2">${tx.date}</td><td class="p-2 capitalize">${tx.type}</td><td class="p-2">${tx.details}</td><td class="p-2 text-right font-bold ${color}">${sign}$${Math.abs(tx.amount).toFixed(2)}</td></tr>`;
+            });
+            document.getElementById('account-menu').classList.add('hidden'); document.getElementById('transactions-modal').classList.remove('hidden');
+        }
+
+        function updateBalanceDisplay() { document.getElementById('display-balance').innerText = `$${userBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`; }
+        function logout() { localStorage.removeItem('lootSphereActiveUser'); checkAuth(); updatePackUI(); }
+
+        // --- PROBABILITY ALGORITHM ---
+        function getWeightedRandomItem(contents) {
+            let totalWeight = 0;
+            contents.forEach(item => totalWeight += parseFloat(item.chance || 0));
+            let randomNum = Math.random() * totalWeight;
+            for (let i = 0; i < contents.length; i++) {
+                let weight = parseFloat(contents[i].chance || 0);
+                if (randomNum < weight) return contents[i];
+                randomNum -= weight;
+            }
+            return contents[contents.length - 1]; 
+        }
+
+        // --- SPIN ENGINE LOGIC ---
+        function loadPackDetails() {
+            const pack = globalPacksData[activePackIndex]; currentMultiplier = 1;
+            document.getElementById('detail-pack-img').src = pack.image; document.getElementById('detail-pack-title').innerText = `${pack.name} - $${pack.price.toFixed(2)}`; document.getElementById('detail-pack-count').innerText = `${pack.contents ? pack.contents.length : 0} Items`;
+            const grid = document.getElementById('detail-contents-grid'); grid.innerHTML = '';
+            if(pack.contents && pack.contents.length > 0) {
+                const sorted = [...pack.contents].sort((a,b) => b.value - a.value);
+                sorted.forEach(item => { grid.innerHTML += `<div class="bg-stake-card rounded-md p-3 pb-4 flex flex-col items-center relative overflow-hidden border border-stake-cardHover shadow-md"><div class="item-glow"></div><span class="text-[10px] text-[#b1bad3] font-mono z-10">${parseFloat(item.chance).toFixed(4)}%</span><img src="${item.image}" class="h-20 w-full object-contain my-3 z-10 filter drop-shadow-md"><span class="text-xs text-stake-text truncate w-full text-center z-10">${item.name}</span><span class="text-sm font-bold text-white mt-1 z-10">$${parseFloat(item.value).toFixed(2)}</span></div>`; });
+            }
+            updatePackUI();
+        }
+
+        function toggleFastSpin() { if(isSpinning) return; isFastSpin = !isFastSpin; const btn = document.getElementById('fast-spin-btn'); if(isFastSpin) btn.classList.add('fast-spin-active'); else btn.classList.remove('fast-spin-active'); }
+        function changeMultiplier(delta) { if(isSpinning) return; currentMultiplier += delta; if(currentMultiplier < 1) currentMultiplier = 1; if(currentMultiplier > 6) currentMultiplier = 6; updatePackUI(); }
+        
+        function updatePackUI() {
+            const pack = globalPacksData[activePackIndex];
+            document.getElementById('multiplier-display').innerText = `x${currentMultiplier}`;
+            const openBtn = document.getElementById('btn-open-pack');
+            const activeUser = JSON.parse(localStorage.getItem('lootSphereActiveUser'));
+
+            if(activeUser && activeUser.banned) {
+                openBtn.innerText = `ACCOUNT BANNED`; openBtn.classList.remove('bg-stake-green', 'hover:bg-[#00c701]', 'bg-stake-purple', 'hover:bg-stake-purpleHover', 'active:scale-95'); openBtn.classList.add('bg-red-900', 'text-stake-red', 'cursor-not-allowed', 'border', 'border-stake-red'); openBtn.onclick = () => document.getElementById('ban-modal').classList.remove('hidden');
+            } else {
+                openBtn.innerText = `Open for $${(pack.price * currentMultiplier).toFixed(2)}`; openBtn.classList.remove('bg-red-900', 'text-stake-red', 'cursor-not-allowed', 'border', 'border-stake-red'); openBtn.classList.add('active:scale-95');
+                if(currentMultiplier > 1) { openBtn.classList.remove('bg-stake-green', 'hover:bg-[#00c701]'); openBtn.classList.add('bg-stake-purple', 'hover:bg-stake-purpleHover'); } else { openBtn.classList.add('bg-stake-green', 'hover:bg-[#00c701]'); openBtn.classList.remove('bg-stake-purple', 'hover:bg-stake-purpleHover'); }
+                openBtn.onclick = () => executeUnbox(false);
+            }
+            setupSpinnerTracks(pack);
+        }
+
+        function setupSpinnerTracks(pack) {
+            const wrapper = document.getElementById('spinners-wrapper');
+            wrapper.innerHTML = `<div class="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[10px] border-l-transparent border-r-transparent border-t-white z-20 drop-shadow-md"></div><div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-b-[10px] border-l-transparent border-r-transparent border-b-white z-20 drop-shadow-md"></div>`;
+            if(!pack.contents || pack.contents.length === 0) return;
+            
+            let itemClass = currentMultiplier >= 4 ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12'; 
+            let trackClass = currentMultiplier >= 4 ? 'h-16 sm:h-20' : 'h-20 sm:h-24'; 
+            let gapClass = currentMultiplier >= 4 ? 'gap-1' : 'gap-2'; 
+            let containerClass = currentMultiplier >= 4 ? 'w-20 sm:w-24' : 'w-24 sm:w-28';
+            
+            for(let row = 0; row < currentMultiplier; row++) {
+                let trackHTML = `<div class="relative w-full ${trackClass} overflow-hidden"><div id="spinner-track-${row}" class="absolute flex items-center left-[50%] h-full ${gapClass} w-max" style="transform: translate3d(0px, 0, 0); transition: none;">`;
+                for(let i=0; i<85; i++) {
+                    const randomItem = getWeightedRandomItem(pack.contents); 
+                    trackHTML += `<div class="${containerClass} flex-shrink-0 flex flex-col items-center justify-center opacity-40 transition-all duration-300 border border-transparent"><img src="${randomItem.image}" class="${itemClass} object-contain filter drop-shadow-lg mb-1"><span class="text-[10px] text-stake-text truncate w-full text-center font-bold">${randomItem.name}</span><span class="text-xs text-stake-green font-bold">$${parseFloat(randomItem.value).toFixed(2)}</span></div>`;
+                }
+                trackHTML += `</div></div>`; wrapper.innerHTML += trackHTML;
+            }
+
+            // PERFECT CENTERING FIX: Calculate exact rendered pixel width to center the idle item securely.
+            setTimeout(() => {
+                for(let row = 0; row < currentMultiplier; row++) {
+                    const track = document.getElementById(`spinner-track-${row}`);
+                    if(track && track.children[0]) {
+                        const itemW = track.children[0].offsetWidth;
+                        track.style.transform = `translate3d(-${itemW / 2}px, 0, 0)`;
+                    }
+                }
+            }, 10);
+        }
+
+        function executeUnbox(isDemo = false) {
+            if(isSpinning) return;
+            initAudio(); 
+            
+            const activeUser = JSON.parse(localStorage.getItem('lootSphereActiveUser'));
+            if(!isDemo && (!activeUser || activeUser.banned)) {
+                if(!activeUser) return openAuthModal('login');
+                if(activeUser.banned) return document.getElementById('ban-modal').classList.remove('hidden');
+            }
+            
+            const pack = globalPacksData[activePackIndex]; const totalCost = pack.price * currentMultiplier;
+            if (!isDemo && userBalance < totalCost) return alert("Insufficient balance! Please deposit funds.");
+            
+            if (!isDemo) {
+                userBalance -= totalCost; updateBalanceDisplay(); 
+                logTransaction(-totalCost, 'unbox', `Unboxed ${currentMultiplier}x ${pack.name} pack`);
+            }
+            
+            isSpinning = true; currentUnboxedItems = []; const winIndex = 70; const animDuration = isFastSpin ? 2 : 4;
+            
+            simulateWheelTicks(animDuration);
+
+            for(let row = 0; row < currentMultiplier; row++) {
+                const track = document.getElementById(`spinner-track-${row}`); if(!track) continue;
+                track.style.transition = 'none'; 
+                let wonItem = { name: "Mystery", value: pack.price, image: pack.image };
+                if(pack.contents && pack.contents.length > 0) { wonItem = getWeightedRandomItem(pack.contents); }
+                currentUnboxedItems.push({ ...wonItem, id: Date.now() + row });
+                const items = track.children;
+                let itemClass = currentMultiplier >= 4 ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12';
+                if(items[winIndex]) items[winIndex].innerHTML = `<img src="${wonItem.image}" class="${itemClass} object-contain filter drop-shadow-xl mb-1"><span class="text-[10px] text-white truncate w-full text-center font-bold">${wonItem.name}</span><span class="text-xs text-stake-green font-bold">$${parseFloat(wonItem.value).toFixed(2)}</span>`;
+            }
+
+            document.body.offsetHeight; 
+
+            setTimeout(() => {
+                for(let row = 0; row < currentMultiplier; row++) {
+                    const track = document.getElementById(`spinner-track-${row}`); if(!track) continue;
+                    const items = track.children; 
+                    const baseItemWidth = items[0] ? items[0].offsetWidth : (currentMultiplier >= 4 ? 80 : 96);
+                    const initialOffset = baseItemWidth / 2;
+                    const gap = currentMultiplier >= 4 ? 4 : 8; 
+                    const stepWidth = baseItemWidth + gap;
+                    
+                    // Clamped randomized offset: strictly keeps the pointer on the item body (never in the gap)
+                    const randomizeOffset = (Math.random() - 0.5) * (baseItemWidth * 0.8);
+                    const translation = -((winIndex * stepWidth) + initialOffset) + randomizeOffset;
+                    
+                    track.animate([
+                        { transform: `translate3d(-${initialOffset}px, 0, 0)` }, 
+                        { transform: `translate3d(${translation}px, 0, 0)` }
+                    ], { duration: animDuration * 1000, easing: 'cubic-bezier(0.15,0.85,0.15,1)', fill: 'forwards' });
+                }
+            }, 50);
+
+            setTimeout(() => {
+                playCashSound(); // Trigger cash out sound
+                
+                for(let row = 0; row < currentMultiplier; row++) { 
+                    const track = document.getElementById(`spinner-track-${row}`); 
+                    if(track && track.children[winIndex]) { 
+                        const winnerEl = track.children[winIndex];
+                        winnerEl.classList.remove('opacity-40', 'border-transparent'); 
+                        winnerEl.classList.add('opacity-100', 'scale-[1.35]', 'z-30', 'bg-stake-cardHover', 'border-stake-green', 'shadow-2xl', 'shadow-stake-green/50', 'rounded-md'); 
+                    } 
+                }
+                
+                if (!isDemo) {
+                    currentUnboxedItems.forEach(item => userInventory.push(item));
+                    logTransaction(0, 'inventory', `Auto-moved ${currentUnboxedItems.length} unboxed items to inventory`);
+                }
+                
+                // Keep the glowing highlight on screen for 2.5 seconds, then silently reset
+                setTimeout(() => {
+                    currentUnboxedItems = [];
+                    isSpinning = false;
+                    setupSpinnerTracks(globalPacksData[activePackIndex]);
+                }, 2500);
+                
+            }, animDuration * 1000);
+        }
+
+        // --- INVENTORY LOGIC ---
+        function toggleInventory() {
+            if(isSpinning) return;
+            const activeUser = JSON.parse(localStorage.getItem('lootSphereActiveUser'));
+            if(!activeUser) return openAuthModal('login');
+            if(activeUser.banned) return document.getElementById('ban-modal').classList.remove('hidden');
+            const modal = document.getElementById('inventory-modal');
+            if (modal.classList.contains('hidden')) { renderInventory(); modal.classList.remove('hidden'); } else { modal.classList.add('hidden'); }
+        }
+
+        function renderInventory() {
+            const list = document.getElementById('inventory-list'); list.innerHTML = '';
+            if (userInventory.length === 0) return list.innerHTML = `<div class="text-center text-stake-text py-10 font-bold">Your inventory is empty.</div>`;
+            const displayList = [...userInventory].reverse();
+            displayList.forEach((item, index) => {
+                const actualIndex = userInventory.length - 1 - index;
+                list.innerHTML += `<div class="flex items-center justify-between bg-stake-bg p-3 rounded-md border border-stake-card"><div class="flex items-center space-x-4"><div class="w-14 h-14 bg-stake-nav rounded flex items-center justify-center p-1 border border-stake-card"><img src="${item.image}" class="max-h-full object-contain"></div><div><h4 class="font-bold text-white text-sm">${item.name}</h4><p class="text-stake-green text-sm font-bold mt-0.5">$${item.value.toFixed(2)}</p></div></div><button onclick="sellFromInventory(${actualIndex})" class="px-5 py-2 bg-stake-card text-white text-sm font-bold hover:bg-stake-cardHover rounded transition">Sell</button></div>`;
+            });
+        }
+        
+        function sellFromInventory(index) { 
+            let itemVal = userInventory[index].value; let itemName = userInventory[index].name; 
+            userBalance += itemVal; userInventory.splice(index, 1); 
+            updateBalanceDisplay(); logTransaction(itemVal, 'sell', `Sold ${itemName} from inventory`); renderInventory(); 
+        }
+
+        function sellAllInventory() {
+            if (userInventory.length === 0) return;
+            let total = 0; let count = userInventory.length;
+            userInventory.forEach(item => total += item.value);
+            userBalance += total; userInventory = [];
+            updateBalanceDisplay(); logTransaction(total, 'sell', `Sold all ${count} items from inventory`); renderInventory();
+        }
+
+        function toggleMenu(id) { const menus = ['balance-menu', 'account-menu']; menus.forEach(menuId => { const el = document.getElementById(menuId); if (menuId === id) { el.classList.toggle('hidden'); } else { el.classList.add('hidden'); } }); }
+        document.addEventListener('click', (e) => { if (!e.target.closest('.relative') && !e.target.closest('#auth-modal') && !e.target.closest('#ban-modal') && !e.target.closest('#transactions-modal')) { document.getElementById('balance-menu').classList.add('hidden'); document.getElementById('account-menu').classList.add('hidden'); } });
+
+        // AUTH MODAL FUNCTIONS
+        function openAuthModal(mode) { document.getElementById('account-menu').classList.add('hidden'); switchAuthTab(mode); document.getElementById('auth-modal').classList.remove('hidden'); }
+        function closeAuthModal() { document.getElementById('auth-modal').classList.add('hidden'); document.getElementById('auth-error').classList.add('hidden'); document.getElementById('auth-form').reset(); }
+        function switchAuthTab(mode) { currentAuthMode = mode; const errorBox = document.getElementById('auth-error'); errorBox.classList.add('hidden'); if(mode === 'login') { document.getElementById('tab-login').className = "flex-1 py-3 text-sm font-bold text-white border-b-2 border-stake-blue bg-stake-card transition"; document.getElementById('tab-register').className = "flex-1 py-3 text-sm font-bold text-stake-text border-b-2 border-transparent hover:bg-stake-bg transition"; document.getElementById('register-fields').classList.add('hidden'); document.getElementById('auth-username').removeAttribute('required'); document.getElementById('auth-title').innerText = "Login"; document.getElementById('auth-submit-btn').innerText = "Login Now"; } else { document.getElementById('tab-register').className = "flex-1 py-3 text-sm font-bold text-white border-b-2 border-stake-blue bg-stake-card transition"; document.getElementById('tab-login').className = "flex-1 py-3 text-sm font-bold text-stake-text border-b-2 border-transparent hover:bg-stake-bg transition"; document.getElementById('register-fields').classList.remove('hidden'); document.getElementById('auth-username').setAttribute('required', 'true'); document.getElementById('auth-title').innerText = "Create Account"; document.getElementById('auth-submit-btn').innerText = "Sign Up & Play"; } }
+        function handleAuth(e) { e.preventDefault(); const email = document.getElementById('auth-email').value.trim(); const password = document.getElementById('auth-password').value.trim(); const username = document.getElementById('auth-username').value.trim(); const errorBox = document.getElementById('auth-error'); let users = JSON.parse(localStorage.getItem('lootSphereUsers')) || []; if(currentAuthMode === 'register') { if(users.find(u => u.email === email)) { errorBox.innerText = "Email already exists!"; errorBox.classList.remove('hidden'); return; } const newUser = { username, email, password, balance: 1250.00, banned: false, inventory: [], transactions: [] }; users.push(newUser); localStorage.setItem('lootSphereUsers', JSON.stringify(users)); localStorage.setItem('lootSphereActiveUser', JSON.stringify(newUser)); closeAuthModal(); checkAuth(); updatePackUI(); } else { const user = users.find(u => u.email === email && u.password === password); if(user) { localStorage.setItem('lootSphereActiveUser', JSON.stringify(user)); closeAuthModal(); checkAuth(); updatePackUI(); } else { errorBox.innerText = "Invalid email or password."; errorBox.classList.remove('hidden'); } } }
+    </script>
+</body>
+</html>
