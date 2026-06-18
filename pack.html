@@ -48,7 +48,8 @@
             <div class="px-4 pb-2"><button onclick="window.location.href='index.html'" class="text-stake-text hover:text-white font-bold text-sm flex items-center gap-2 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Back to Lobby</button></div>
             
             <div class="w-full bg-stake-nav/50 relative overflow-hidden flex flex-col items-center justify-center roulette-container border-y border-stake-card py-6 min-h-[16rem]" id="spinners-wrapper">
-                </div>
+                <!-- Spinners injected here -->
+            </div>
             
             <div class="flex flex-col md:flex-row items-center justify-between p-4 bg-stake-bg border-b border-stake-card gap-4">
                 <div class="flex items-center bg-stake-nav rounded-md p-1 border border-stake-card">
@@ -75,6 +76,7 @@
         </div>
     </main>
 
+    <!-- MODALS -->
     <div id="transactions-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
         <div class="bg-stake-nav rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl border border-stake-card">
             <div class="flex justify-between items-center p-5 border-b border-stake-bg"><h3 class="text-xl font-bold text-white">Transaction History</h3><button onclick="document.getElementById('transactions-modal').classList.add('hidden')" class="text-stake-text hover:text-white font-bold text-2xl leading-none">&times;</button></div>
@@ -115,17 +117,6 @@
         let currentUnboxedItems = []; 
         let isSpinning = false; 
         let currentAuthMode = 'login';
-
-        const defaultPacks = [
-            { 
-                name: "Money Crunch", price: 0.11, image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7", 
-                contents: [
-                    { name: "Apple Gift Cards", value: 250.00, chance: 0.0010, image: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" },
-                    { name: "PlayStation Store", value: 100.00, chance: 0.0010, image: "https://upload.wikimedia.org/wikipedia/commons/0/00/PlayStation_logo.svg" },
-                    { name: "Voucher", value: 0.01, chance: 68.9980, image: "https://cdn-icons-png.flaticon.com/512/2611/2611158.png" }
-                ]
-            }
-        ];
 
         // --- ENHANCED AUDIO ENGINE ---
         let audioCtx;
@@ -181,13 +172,13 @@
             const activeUser = JSON.parse(localStorage.getItem('lootSphereActiveUser'));
             if (!activeUser) {
                 window.location.href = 'index.html';
-                return; // Stop execution
+                return;
             }
 
             checkAuth();
             
             const stored = localStorage.getItem('lootSpherePacks'); 
-            globalPacksData = stored ? JSON.parse(stored) : defaultPacks; 
+            globalPacksData = stored ? JSON.parse(stored) : []; 
             globalPacksData.sort((a, b) => b.price - a.price);
             
             const urlParams = new URLSearchParams(window.location.search); 
@@ -312,13 +303,12 @@
             let trackClass = currentMultiplier >= 4 ? 'h-16 sm:h-20' : 'h-20 sm:h-24'; 
             let gapClass = currentMultiplier >= 4 ? 'gap-1' : 'gap-2'; 
             let containerClass = currentMultiplier >= 4 ? 'w-20 sm:w-24' : 'w-24 sm:w-28';
-            let initialOffset = currentMultiplier >= 4 ? 40 : 48; // Half the width to perfectly center the idle item
             
             for(let row = 0; row < currentMultiplier; row++) {
-                let trackHTML = `<div class="relative w-full ${trackClass} overflow-hidden"><div id="spinner-track-${row}" class="absolute flex items-center left-[50%] h-full ${gapClass} w-max" style="transform: translate3d(-${initialOffset}px, 0, 0); transition: none;">`;
+                // Initialize track container completely unshifted 
+                let trackHTML = `<div class="relative w-full ${trackClass} overflow-hidden"><div id="spinner-track-${row}" class="absolute flex items-center left-[50%] h-full ${gapClass} w-max" style="transition: none;">`;
                 
-                // --- GUARANTEED DISPLAY LOGIC ---
-                // Shuffles the contents so every item appears on the track visually
+                // Shuffle pool to guarantee display of all items
                 let displayPool = [...pack.contents];
                 for (let i = displayPool.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -332,13 +322,14 @@
                 trackHTML += `</div></div>`; wrapper.innerHTML += trackHTML;
             }
 
-            // Recenter exactly based on live rendered pixels
+            // Flawless mathematically centered reset using true DOM pixel offsets
             setTimeout(() => {
                 for(let row = 0; row < currentMultiplier; row++) {
                     const track = document.getElementById(`spinner-track-${row}`);
                     if(track && track.children[0]) {
-                        const itemW = track.children[0].offsetWidth;
-                        track.style.transform = `translate3d(-${itemW / 2}px, 0, 0)`;
+                        const item0 = track.children[0];
+                        const exactCenterOffset = item0.offsetLeft + (item0.offsetWidth / 2);
+                        track.style.transform = `translate3d(-${exactCenterOffset}px, 0, 0)`;
                     }
                 }
             }, 10);
@@ -366,37 +357,42 @@
             
             simulateWheelTicks(animDuration);
 
-            let itemClass = currentMultiplier >= 4 ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12';
-            let baseItemWidth = currentMultiplier >= 4 ? 80 : 96; 
-            let initialOffset = baseItemWidth / 2;
-
             for(let row = 0; row < currentMultiplier; row++) {
                 const track = document.getElementById(`spinner-track-${row}`); if(!track) continue;
+                
+                const item0 = track.children[0];
+                const initialOffset = item0.offsetLeft + (item0.offsetWidth / 2);
                 
                 track.style.transition = 'none'; 
                 track.style.transform = `translate3d(-${initialOffset}px, 0, 0)`;
 
                 let wonItem = { name: "Mystery", value: pack.price, image: pack.image };
                 if(pack.contents && pack.contents.length > 0) {
-                    wonItem = getWeightedRandomItem(pack.contents); // Safe Drop logic!
+                    wonItem = getWeightedRandomItem(pack.contents); 
                 }
                 
                 currentUnboxedItems.push({ ...wonItem, id: Date.now() + row });
+                
                 const items = track.children;
+                let itemClass = currentMultiplier >= 4 ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12';
                 if(items[winIndex]) items[winIndex].innerHTML = `<img src="${wonItem.image}" class="${itemClass} object-contain filter drop-shadow-xl mb-1"><span class="text-[10px] text-white truncate w-full text-center font-bold">${wonItem.name}</span><span class="text-xs text-stake-green font-bold">$${parseFloat(wonItem.value).toFixed(2)}</span>`;
             }
 
-            document.body.offsetHeight; 
+            document.body.offsetHeight; // force browser layout recalculation
 
             setTimeout(() => {
                 for(let row = 0; row < currentMultiplier; row++) {
                     const track = document.getElementById(`spinner-track-${row}`); if(!track) continue;
-                    const gap = currentMultiplier >= 4 ? 4 : 8; 
-                    const stepWidth = baseItemWidth + gap;
                     
-                    // Safely clamps the stop inside the item boundaries (never the gap)
-                    const randomizeOffset = (Math.random() - 0.5) * (baseItemWidth * 0.8);
-                    const translation = -((winIndex * stepWidth) + initialOffset) + randomizeOffset;
+                    const item0 = track.children[0];
+                    const targetItem = track.children[winIndex];
+                    
+                    const initialOffset = item0.offsetLeft + (item0.offsetWidth / 2);
+                    const targetOffset = targetItem.offsetLeft + (targetItem.offsetWidth / 2);
+                    
+                    // Restricts the pointer to stop inside the middle 60% of the item body. It will never rest on a gap.
+                    const randomizeOffset = (Math.random() - 0.5) * (targetItem.offsetWidth * 0.6);
+                    const translation = -(targetOffset) + randomizeOffset;
                     
                     track.animate([
                         { transform: `translate3d(-${initialOffset}px, 0, 0)` }, 
@@ -422,7 +418,6 @@
                     logTransaction(0, 'inventory', `Auto-moved ${currentUnboxedItems.length} unboxed items to inventory`);
                 }
                 
-                // Keep the glowing highlight on screen for 2.5 seconds, then silently reset
                 setTimeout(() => {
                     currentUnboxedItems = [];
                     isSpinning = false;
