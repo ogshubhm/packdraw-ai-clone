@@ -46,10 +46,7 @@
     <main class="max-w-7xl mx-auto w-full">
         <div id="view-pack-details" class="flex flex-col w-full pb-20 mt-4">
             <div class="px-4 pb-2"><button onclick="window.location.href='index.html'" class="text-stake-text hover:text-white font-bold text-sm flex items-center gap-2 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg> Back to Lobby</button></div>
-            
-            <div class="w-full bg-stake-nav/50 relative overflow-hidden flex flex-col items-center justify-center roulette-container border-y border-stake-card py-6 min-h-[16rem]" id="spinners-wrapper">
-                </div>
-            
+            <div class="w-full bg-stake-nav/50 relative overflow-hidden flex flex-col items-center justify-center roulette-container border-y border-stake-card py-6 min-h-[16rem]" id="spinners-wrapper"></div>
             <div class="flex flex-col md:flex-row items-center justify-between p-4 bg-stake-bg border-b border-stake-card gap-4">
                 <div class="flex items-center bg-stake-nav rounded-md p-1 border border-stake-card">
                     <button onclick="changeMultiplier(-1)" class="px-4 py-2 text-stake-text hover:text-white font-black text-lg leading-none transition">−</button>
@@ -64,7 +61,6 @@
                     <svg id="fast-spin-btn" onclick="toggleFastSpin()" class="w-5 h-5 cursor-pointer transition-all duration-300 hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 </div>
             </div>
-            
             <div class="p-6 pb-2 max-w-7xl mx-auto w-full flex justify-between items-center mt-4">
                 <div class="flex items-center gap-4">
                     <img id="detail-pack-img" src="" class="w-12 h-12 rounded bg-stake-card p-1 object-contain">
@@ -90,7 +86,15 @@
         <div class="bg-stake-nav rounded-lg w-full max-w-md shadow-2xl border border-stake-card overflow-hidden">
             <div class="flex justify-between items-center p-5 border-b border-stake-bg"><h3 id="auth-title" class="text-xl font-bold text-white">Login</h3><button onclick="closeAuthModal()" class="text-stake-text hover:text-white font-bold text-2xl leading-none">&times;</button></div>
             <div class="flex border-b border-stake-bg"><button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-3 text-sm font-bold text-white border-b-2 border-stake-blue bg-stake-card transition">Login</button><button id="tab-register" onclick="switchAuthTab('register')" class="flex-1 py-3 text-sm font-bold text-stake-text border-b-2 border-transparent hover:bg-stake-bg transition">Register</button></div>
-            <form id="auth-form" onsubmit="handleAuth(event)"><div class="p-6 space-y-4"><div id="auth-error" class="hidden p-3 bg-red-900/50 border border-red-500 text-stake-red rounded-md text-sm font-bold text-center"></div><div id="register-fields" class="hidden space-y-4"><input type="text" id="auth-username" placeholder="Username" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none"></div><input type="email" id="auth-email" placeholder="Email Address" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none" required><input type="password" id="auth-password" placeholder="Password" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none" required><button type="submit" id="auth-submit-btn" class="w-full py-3 mt-2 bg-stake-green text-stake-bg rounded-md font-black text-lg hover:bg-[#00c701] transition shadow-lg">Login Now</button></div></form>
+            <form id="auth-form" onsubmit="handleAuth(event)" class="p-6 space-y-4"><div id="auth-error" class="hidden p-3 bg-red-900/50 border border-red-500 text-stake-red rounded-md text-sm font-bold text-center"></div><div id="register-fields" class="hidden space-y-4"><input type="text" id="auth-username" placeholder="Username" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none"></div><input type="email" id="auth-email" placeholder="Email Address" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none" required><input type="password" id="auth-password" placeholder="Password" class="w-full px-4 py-3 rounded-md bg-stake-bg border border-stake-card text-white focus:ring-2 focus:ring-stake-blue outline-none" required><button type="submit" id="auth-submit-btn" class="w-full py-3 mt-2 bg-stake-green text-stake-bg rounded-md font-black text-lg hover:bg-[#00c701] transition shadow-lg">Login Now</button></form>
+        </div>
+    </div>
+    
+    <div id="result-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-stake-nav p-8 max-w-2xl w-full mx-auto rounded-lg shadow-2xl border border-stake-card flex flex-col items-center max-h-[90vh] overflow-y-auto">
+            <h2 id="result-modal-title" class="text-3xl font-bold mb-6 text-white text-center">Items Secured!</h2><div id="result-items-grid" class="flex flex-wrap justify-center gap-4 mb-6 w-full"></div>
+            <div class="w-full bg-stake-bg p-4 rounded-md text-center mb-8 shadow-inner border border-stake-card flex flex-col items-center"><span class="text-xs text-stake-text font-bold uppercase tracking-widest mb-1">Total Value</span><p id="unboxed-total-value" class="text-stake-green font-black text-3xl"></p></div>
+            <div class="flex gap-3 w-full"><button id="res-sell-btn" class="w-full py-4 bg-stake-card text-white rounded-md hover:bg-stake-cardHover font-bold transition">Sell All</button><button id="res-keep-btn" class="w-full py-4 bg-stake-blue text-white rounded-md font-bold hover:bg-stake-blueHover transition shadow-lg shadow-stake-blue/20">Keep All</button></div>
         </div>
     </div>
 
@@ -98,75 +102,12 @@
         <div class="bg-stake-nav rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl border border-stake-card">
             <div class="flex justify-between items-center p-5 border-b border-stake-bg"><h3 class="text-xl font-bold text-white">Inventory</h3><button onclick="toggleInventory()" class="text-stake-text hover:text-white font-bold text-2xl leading-none">&times;</button></div>
             <div id="inventory-list" class="p-5 overflow-y-auto flex-grow space-y-3"></div>
-            <div class="p-5 border-t border-stake-bg bg-stake-nav rounded-b-lg flex justify-between items-center">
-                <button onclick="sellAllInventory()" class="px-6 py-2 bg-stake-green hover:bg-[#00c701] text-stake-bg rounded-md font-bold transition shadow-md">Sell All</button>
-                <button onclick="toggleInventory()" class="px-6 py-2 bg-stake-card text-white hover:bg-stake-cardHover rounded-md font-bold transition">Close</button>
-            </div>
         </div>
     </div>
 
     <script>
         let userBalance = 0; let userInventory = []; let globalPacksData = [];
         let activePackIndex = null; let currentMultiplier = 1; let isFastSpin = false; let currentUnboxedItems = []; let isSpinning = false; let currentAuthMode = 'login';
-
-        // --- ENHANCED AUDIO ENGINE ---
-        let audioCtx;
-        function initAudio() {
-            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-        }
-        
-        // Snappy roulette tick
-        function playTickSound() {
-            if(!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.03);
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.03);
-        }
-
-        // Simulates the wheel slowing down organically
-        function simulateWheelTicks(durationSec) {
-            if(!audioCtx) return;
-            let timePassed = 0;
-            let delay = 30;
-            function tick() {
-                if(timePassed >= durationSec * 1000) return;
-                playTickSound();
-                let progress = timePassed / (durationSec * 1000);
-                delay = 30 + Math.pow(progress, 3) * 400; // Exponentially slow down
-                timePassed += delay;
-                setTimeout(tick, delay);
-            }
-            tick();
-        }
-        
-        // Cash Register / Jackpot Chime
-        function playCashSound() {
-            if(!audioCtx) return;
-            const now = audioCtx.currentTime;
-            const freqs = [1200, 1600, 2000]; 
-            freqs.forEach((freq, i) => {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = freq + (Math.random()*100);
-                gain.gain.setValueAtTime(0, now + i * 0.05);
-                gain.gain.linearRampToValueAtTime(0.2, now + i * 0.05 + 0.02);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.5);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + i * 0.05);
-                osc.stop(now + i * 0.05 + 0.6);
-            });
-        }
 
         window.onload = function() {
             checkAuth();
@@ -231,17 +172,21 @@
         function updateBalanceDisplay() { document.getElementById('display-balance').innerText = `$${userBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`; }
         function logout() { localStorage.removeItem('lootSphereActiveUser'); checkAuth(); updatePackUI(); }
 
-        // --- PROBABILITY ALGORITHM ---
+        // --- PROBABILITY / WEIGHTED RANDOM ALGORITHM ---
         function getWeightedRandomItem(contents) {
             let totalWeight = 0;
             contents.forEach(item => totalWeight += parseFloat(item.chance || 0));
+            
             let randomNum = Math.random() * totalWeight;
+            
             for (let i = 0; i < contents.length; i++) {
                 let weight = parseFloat(contents[i].chance || 0);
-                if (randomNum < weight) return contents[i];
+                if (randomNum < weight) {
+                    return contents[i];
+                }
                 randomNum -= weight;
             }
-            return contents[contents.length - 1]; 
+            return contents[contents.length - 1]; // Fallback
         }
 
         // --- SPIN ENGINE LOGIC ---
@@ -279,37 +224,19 @@
             const wrapper = document.getElementById('spinners-wrapper');
             wrapper.innerHTML = `<div class="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-t-[10px] border-l-transparent border-r-transparent border-t-white z-20 drop-shadow-md"></div><div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-r-[8px] border-b-[10px] border-l-transparent border-r-transparent border-b-white z-20 drop-shadow-md"></div>`;
             if(!pack.contents || pack.contents.length === 0) return;
-            
-            let itemClass = currentMultiplier >= 4 ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12'; 
-            let trackClass = currentMultiplier >= 4 ? 'h-16 sm:h-20' : 'h-20 sm:h-24'; 
-            let gapClass = currentMultiplier >= 4 ? 'gap-1' : 'gap-2'; 
-            let containerClass = currentMultiplier >= 4 ? 'w-20 sm:w-24' : 'w-24 sm:w-28';
-            
+            let itemClass = currentMultiplier >= 4 ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12'; let trackClass = currentMultiplier >= 4 ? 'h-16 sm:h-20' : 'h-20 sm:h-24'; let gapClass = currentMultiplier >= 4 ? 'gap-1' : 'gap-2'; let containerClass = currentMultiplier >= 4 ? 'w-20 sm:w-24' : 'w-24 sm:w-28';
             for(let row = 0; row < currentMultiplier; row++) {
                 let trackHTML = `<div class="relative w-full ${trackClass} overflow-hidden"><div id="spinner-track-${row}" class="absolute flex items-center left-[50%] h-full ${gapClass} w-max" style="transform: translate3d(0px, 0, 0); transition: none;">`;
                 for(let i=0; i<85; i++) {
-                    const randomItem = getWeightedRandomItem(pack.contents); 
-                    trackHTML += `<div class="${containerClass} flex-shrink-0 flex flex-col items-center justify-center opacity-40 transition-all duration-300 border border-transparent"><img src="${randomItem.image}" class="${itemClass} object-contain filter drop-shadow-lg mb-1"><span class="text-[10px] text-stake-text truncate w-full text-center font-bold">${randomItem.name}</span><span class="text-xs text-stake-green font-bold">$${parseFloat(randomItem.value).toFixed(2)}</span></div>`;
+                    const randomItem = getWeightedRandomItem(pack.contents); // Uses weighted random logic
+                    trackHTML += `<div class="${containerClass} flex-shrink-0 flex flex-col items-center justify-center opacity-40 transition-opacity duration-300 border border-transparent"><img src="${randomItem.image}" class="${itemClass} object-contain filter drop-shadow-lg mb-1"><span class="text-[10px] text-stake-text truncate w-full text-center font-bold">${randomItem.name}</span><span class="text-xs text-stake-green font-bold">$${parseFloat(randomItem.value).toFixed(2)}</span></div>`;
                 }
                 trackHTML += `</div></div>`; wrapper.innerHTML += trackHTML;
             }
-
-            // PERFECT CENTERING FIX: Calculate exact rendered pixel width to center the idle item securely.
-            setTimeout(() => {
-                for(let row = 0; row < currentMultiplier; row++) {
-                    const track = document.getElementById(`spinner-track-${row}`);
-                    if(track && track.children[0]) {
-                        const itemW = track.children[0].offsetWidth;
-                        track.style.transform = `translate3d(-${itemW / 2}px, 0, 0)`;
-                    }
-                }
-            }, 10);
         }
 
         function executeUnbox(isDemo = false) {
             if(isSpinning) return;
-            initAudio(); 
-            
             const activeUser = JSON.parse(localStorage.getItem('lootSphereActiveUser'));
             if(!isDemo && (!activeUser || activeUser.banned)) {
                 if(!activeUser) return openAuthModal('login');
@@ -325,70 +252,51 @@
             }
             
             isSpinning = true; currentUnboxedItems = []; const winIndex = 70; const animDuration = isFastSpin ? 2 : 4;
-            
-            simulateWheelTicks(animDuration);
+            for(let row = 0; row < currentMultiplier; row++) { const track = document.getElementById(`spinner-track-${row}`); if(track) { track.style.transition = 'none'; track.style.transform = 'translate3d(0px, 0, 0)'; } }
+            document.body.offsetHeight; 
 
+            let itemClass = currentMultiplier >= 4 ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12';
             for(let row = 0; row < currentMultiplier; row++) {
                 const track = document.getElementById(`spinner-track-${row}`); if(!track) continue;
-                track.style.transition = 'none'; 
                 let wonItem = { name: "Mystery", value: pack.price, image: pack.image };
-                if(pack.contents && pack.contents.length > 0) { wonItem = getWeightedRandomItem(pack.contents); }
+                if(pack.contents && pack.contents.length > 0) {
+                    wonItem = getWeightedRandomItem(pack.contents); // Uses weighted random logic
+                }
                 currentUnboxedItems.push({ ...wonItem, id: Date.now() + row });
                 const items = track.children;
-                let itemClass = currentMultiplier >= 4 ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12';
                 if(items[winIndex]) items[winIndex].innerHTML = `<img src="${wonItem.image}" class="${itemClass} object-contain filter drop-shadow-xl mb-1"><span class="text-[10px] text-white truncate w-full text-center font-bold">${wonItem.name}</span><span class="text-xs text-stake-green font-bold">$${parseFloat(wonItem.value).toFixed(2)}</span>`;
             }
-
-            document.body.offsetHeight; 
 
             setTimeout(() => {
                 for(let row = 0; row < currentMultiplier; row++) {
                     const track = document.getElementById(`spinner-track-${row}`); if(!track) continue;
-                    const items = track.children; 
-                    const baseItemWidth = items[0] ? items[0].offsetWidth : (currentMultiplier >= 4 ? 80 : 96);
-                    const initialOffset = baseItemWidth / 2;
-                    const gap = currentMultiplier >= 4 ? 4 : 8; 
-                    const stepWidth = baseItemWidth + gap;
-                    
-                    // Clamped randomized offset: strictly keeps the pointer on the item body (never in the gap)
-                    const randomizeOffset = (Math.random() - 0.5) * (baseItemWidth * 0.8);
-                    const translation = -((winIndex * stepWidth) + initialOffset) + randomizeOffset;
-                    
-                    track.animate([
-                        { transform: `translate3d(-${initialOffset}px, 0, 0)` }, 
-                        { transform: `translate3d(${translation}px, 0, 0)` }
-                    ], { duration: animDuration * 1000, easing: 'cubic-bezier(0.15,0.85,0.15,1)', fill: 'forwards' });
+                    const items = track.children; const baseItemWidth = items[0] ? items[0].offsetWidth : 112; const gap = currentMultiplier >= 4 ? 4 : 8; const stepWidth = baseItemWidth + gap;
+                    const randomizeOffset = (Math.random() - 0.5) * baseItemWidth * 0.4;
+                    const translation = -((winIndex * stepWidth) + (baseItemWidth / 2)) + randomizeOffset;
+                    track.animate([{ transform: 'translate3d(0px, 0, 0)' }, { transform: `translate3d(${translation}px, 0, 0)` }], { duration: animDuration * 1000, easing: 'cubic-bezier(0.15,0.85,0.15,1)', fill: 'forwards' });
                 }
             }, 50);
 
             setTimeout(() => {
-                playCashSound(); // Trigger cash out sound
+                for(let row = 0; row < currentMultiplier; row++) { const track = document.getElementById(`spinner-track-${row}`); if(track && track.children[winIndex]) { track.children[winIndex].classList.remove('opacity-40'); track.children[winIndex].classList.add('opacity-100', 'scale-110', 'z-10'); } }
+                const grid = document.getElementById('result-items-grid'); grid.innerHTML = ''; let totalWin = 0;
+                currentUnboxedItems.forEach(item => { totalWin += item.value; grid.innerHTML += `<div class="bg-stake-nav rounded-md p-3 flex flex-col items-center border border-stake-card w-28 sm:w-32 shadow-lg relative overflow-hidden"><div class="item-glow"></div><img src="${item.image}" class="h-14 w-14 object-contain drop-shadow-md mb-2 z-10"><span class="text-[10px] text-stake-text truncate w-full text-center z-10">${item.name}</span><span class="text-sm font-bold text-stake-green mt-1 z-10">$${item.value.toFixed(2)}</span></div>`; });
+                document.getElementById('unboxed-total-value').innerText = `$${totalWin.toFixed(2)}`;
+                const title = document.getElementById('result-modal-title'); const sellBtn = document.getElementById('res-sell-btn'); const keepBtn = document.getElementById('res-keep-btn');
                 
-                for(let row = 0; row < currentMultiplier; row++) { 
-                    const track = document.getElementById(`spinner-track-${row}`); 
-                    if(track && track.children[winIndex]) { 
-                        const winnerEl = track.children[winIndex];
-                        winnerEl.classList.remove('opacity-40', 'border-transparent'); 
-                        winnerEl.classList.add('opacity-100', 'scale-[1.35]', 'z-30', 'bg-stake-cardHover', 'border-stake-green', 'shadow-2xl', 'shadow-stake-green/50', 'rounded-md'); 
-                    } 
-                }
-                
-                if (!isDemo) {
-                    currentUnboxedItems.forEach(item => userInventory.push(item));
-                    logTransaction(0, 'inventory', `Auto-moved ${currentUnboxedItems.length} unboxed items to inventory`);
-                }
-                
-                // Keep the glowing highlight on screen for 2.5 seconds, then silently reset
-                setTimeout(() => {
-                    currentUnboxedItems = [];
-                    isSpinning = false;
-                    setupSpinnerTracks(globalPacksData[activePackIndex]);
-                }, 2500);
-                
+                if (isDemo) { title.innerText = "Demo Finished!"; sellBtn.innerText = "Close Demo"; sellBtn.onclick = () => closeResultModal(); keepBtn.classList.add('hidden'); } 
+                else { title.innerText = "Items Secured!"; sellBtn.innerText = "Sell All"; sellBtn.onclick = () => sellCurrentItems(); keepBtn.classList.remove('hidden'); keepBtn.innerText = "Keep All"; keepBtn.onclick = () => keepCurrentItems(); }
+                setTimeout(() => { document.getElementById('result-modal').classList.remove('hidden'); isSpinning = false; }, isFastSpin ? 400 : 800); 
             }, animDuration * 1000);
         }
 
-        // --- INVENTORY LOGIC ---
+        function sellCurrentItems() {
+            let total = 0; currentUnboxedItems.forEach(i => total += i.value); userBalance += total; updateBalanceDisplay();
+            logTransaction(total, 'sell', 'Sold unboxed items instantly'); closeResultModal();
+        }
+        function keepCurrentItems() { currentUnboxedItems.forEach(item => userInventory.push(item)); logTransaction(0, 'inventory', `Moved ${currentUnboxedItems.length} items to inventory`); closeResultModal(); }
+        function closeResultModal() { currentUnboxedItems = []; document.getElementById('result-modal').classList.add('hidden'); setupSpinnerTracks(globalPacksData[activePackIndex]); }
+
         function toggleInventory() {
             if(isSpinning) return;
             const activeUser = JSON.parse(localStorage.getItem('lootSphereActiveUser'));
@@ -407,20 +315,7 @@
                 list.innerHTML += `<div class="flex items-center justify-between bg-stake-bg p-3 rounded-md border border-stake-card"><div class="flex items-center space-x-4"><div class="w-14 h-14 bg-stake-nav rounded flex items-center justify-center p-1 border border-stake-card"><img src="${item.image}" class="max-h-full object-contain"></div><div><h4 class="font-bold text-white text-sm">${item.name}</h4><p class="text-stake-green text-sm font-bold mt-0.5">$${item.value.toFixed(2)}</p></div></div><button onclick="sellFromInventory(${actualIndex})" class="px-5 py-2 bg-stake-card text-white text-sm font-bold hover:bg-stake-cardHover rounded transition">Sell</button></div>`;
             });
         }
-        
-        function sellFromInventory(index) { 
-            let itemVal = userInventory[index].value; let itemName = userInventory[index].name; 
-            userBalance += itemVal; userInventory.splice(index, 1); 
-            updateBalanceDisplay(); logTransaction(itemVal, 'sell', `Sold ${itemName} from inventory`); renderInventory(); 
-        }
-
-        function sellAllInventory() {
-            if (userInventory.length === 0) return;
-            let total = 0; let count = userInventory.length;
-            userInventory.forEach(item => total += item.value);
-            userBalance += total; userInventory = [];
-            updateBalanceDisplay(); logTransaction(total, 'sell', `Sold all ${count} items from inventory`); renderInventory();
-        }
+        function sellFromInventory(index) { let itemVal = userInventory[index].value; let itemName = userInventory[index].name; userBalance += itemVal; userInventory.splice(index, 1); updateBalanceDisplay(); logTransaction(itemVal, 'sell', `Sold ${itemName} from inventory`); renderInventory(); }
 
         function toggleMenu(id) { const menus = ['balance-menu', 'account-menu']; menus.forEach(menuId => { const el = document.getElementById(menuId); if (menuId === id) { el.classList.toggle('hidden'); } else { el.classList.add('hidden'); } }); }
         document.addEventListener('click', (e) => { if (!e.target.closest('.relative') && !e.target.closest('#auth-modal') && !e.target.closest('#ban-modal') && !e.target.closest('#transactions-modal')) { document.getElementById('balance-menu').classList.add('hidden'); document.getElementById('account-menu').classList.add('hidden'); } });
